@@ -44,3 +44,26 @@ def update(self, prize):
                 prize.rect.top = self.y + 20
         else:
             self.y = self.min_y
+
+
+class Prize:
+    def __init__(self, x, y):
+        self.start_x = x
+        self.start_y = y
+        self.rect = pygame.Rect(x, y, 40, 40)
+
+        #Movement
+        self.speed = 3
+        self.direction = 1 # 1 = right, -1 = left
+
+    def update(self, width):
+        self.rect.x += self.speed * self.direction
+
+        # Bounce off walls
+        if self.rect.right >= width or self.rect.left <= 0:
+            self.direction *= -1
+
+    def reset_position(self):
+        self.rect.x = self.start_x
+        self.rect.y = self.start_y
+        
