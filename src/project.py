@@ -66,4 +66,29 @@ class Prize:
     def reset_position(self):
         self.rect.x = self.start_x
         self.rect.y = self.start_y
-        
+
+
+
+def handle_input(crane):
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        crane.move_left()
+    if keys[pygame.K_RIGHT]:
+        crane.move_right()
+
+def update_game(crane, prize, score, width):
+    previous_holding = crane.holding
+
+    # Update crane
+    crane.update(prize)
+
+    # Update moving prize (only when not being held)
+    if not crane.holding:
+        prize.update(width)
+    
+    # Score when prize is delivered to top
+    if previous_holding and not crane.holding and crane.y == crane.min_y:
+        score += 1
+        prize.reset_position()
+    
+    return score
