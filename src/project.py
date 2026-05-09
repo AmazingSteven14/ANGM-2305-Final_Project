@@ -13,37 +13,45 @@ class Crane:
         self.dropping = False
         self.holding = False
 
-def move_left(self):
-    if not self.dropping:
-        self.x -= self.speed
+    def move_left(self):
+        if not self.dropping:
+            self.x = max(20, self.x - self.speed)
 
-def move_right(self):
-    if not self.dropping:
-        self.x += self.speed
+    def move_right(self):
+        if not self.dropping:
+            self.x = min(580, self.x + self.speed)
 
-def drop(self):
-    if not self.dropping:
-        self.dropping = True
+    def drop(self):
+        if not self.dropping:
+         self.dropping = True
 
-def update(self, prize):
-    if self.dropping:
-        self.y += self.drop_speed
+    def update(self, prize):
+        # Dropping phase
+        if self.dropping:
+            self.y += self.drop_speed
 
-        claw_rect = pygame.Rect(self.x - 20, self.y, 40, 20)
-        if claw_rect.colliderect(prize.rect) and not self.holding:
-            self.holding = True
-        
-        if self.y >= self.max_y:
-            self.dropping = False
-    
-    else:
-        if self.y > self.min_y:
-            self.y -= self.up_speed
-            if self.holding:
-                prize.rect.centerx = self.x
-                prize.rect.top = self.y + 20
+        # Collision check MUST be inside the dropping block
+            claw_rect = pygame.Rect(self.x - 20, self.y, 40, 20)
+            if claw_rect.colliderect(prize.rect) and not self.holding:
+                self.holding = True
+
+            # Stop dropping at bottom
+            if self.y >= self.max_y:
+                self.dropping = False
+
+        # Rising phase
         else:
-            self.y = self.min_y
+            if self.y > self.min_y:
+                self.y -= self.up_speed
+                if self.holding:
+                    prize.rect.centerx = self.x
+                    prize.rect.top = self.y + 20
+            else:
+                self.y = self.min_y
+                self.holding = False
+
+
+       
 
 
 class Prize:
@@ -60,7 +68,12 @@ class Prize:
         self.rect.x += self.speed * self.direction
 
         # Bounce off walls
-        if self.rect.right >= width or self.rect.left <= 0:
+        if self.rect.right >= width:
+            self.rect.right = width
+            self.direction *= -1
+        
+        if self.rect.left <= 0:
+            self.rect.left = 0
             self.direction *= -1
 
     def reset_position(self):
@@ -98,7 +111,7 @@ def draw_game(screen, crane, prize, score, font):
 
 
     # Draw crane
-    pygame.draw.line(screen, (180, 180, 180), (crane.x, crane.y), 4)
+    pygame.draw.line(screen, (180,180,180), (int(crane.x), 0), (int(crane.x), int(crane.y)), 4)
     pygame.draw.rect(screen, (220, 50, 50), (crane.x - 20, crane.y, 40, 20))
 
     # Draw prize
@@ -122,3 +135,52 @@ def draw_end_screen(screen, font, score):
     screen.blit(restart_text, (150, 300))
 
     pygame.display.flip()
+
+
+
+def main():
+    pygame.init()
+    WIDTH, HEIGHT = 600, 500
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    clock = pygame.time.Clock()
+    font = pygame.font.SysFont(None, 48)
+
+    target_score = 5
+    score = 0
+    game_over = False
+
+
+    crane = Crane(WIDTH // 2, min_y=80, max_y=380)
+    prize = Prize(260, 380)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            
+            if game_over and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                score = 0
+                game_over = False
+                crane = Crane(WIDTH //2, min_y=80, max_y=350)
+                prize = Prize(260, 380)
+
+            if not game_over and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                crane.drop()
+
+        if not game_over:
+            handle_input(crane)
+            score = update_game(crane, prize, score, WIDTH)
+
+            if score >= target_score:
+                game_over = True
+            
+            draw_game(screen, crane, prize, score, font)
+        else:
+            draw_end_screen(screen, font, score)
+
+        clock.tick(60)
+
+
+if __name__ == "__main__":
+    main()
