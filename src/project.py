@@ -92,3 +92,33 @@ def update_game(crane, prize, score, width):
         prize.reset_position()
     
     return score
+
+def draw_game(screen, crane, prize, score, font):
+    screen.fill((255, 255, 255))
+
+
+    # Draw crane
+    pygame.draw.line(screen, (180, 180, 180), (crane.x, crane.y), 4)
+    pygame.draw.rect(screen, (220, 50, 50), (crane.x - 20, crane.y, 40, 20))
+
+    # Draw prize
+    pygame.draw.rect(screen, (50, 100, 200), prize.rect)
+
+    # Draw score
+    score_text = font.render(f"Score:  {score}", True, (0, 0, 0))
+    screen.blit(score_text, (20, 20))
+
+    pygame.display.flip()
+
+def draw_end_screen(screen, font, score):
+    screen.fill((240, 240, 240))
+
+    title = font.render("Game Over!", True, (0, 0, 0))
+    score_text = font.render(f"Final Score: {score}", True, (0, 0, 0))
+    restart_text = font.render("Press SPACE to play again", True, (80, 80, 80))
+
+    screen.blit(title, (200, 150))
+    screen.blit(score_text, (200, 220))
+    screen.blit(restart_text, (150, 300))
+
+    pygame.display.flip()
